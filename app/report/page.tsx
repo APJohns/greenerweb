@@ -1,12 +1,7 @@
+import carbonCapture, { Carbon } from '../carbonCapture';
 import styles from './page.module.css';
 
 export const maxDuration = 60;
-
-interface SupportingDocument {
-  id: number;
-  title: string;
-  link: string;
-}
 
 export default async function Report({
   searchParams,
@@ -14,16 +9,7 @@ export default async function Report({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const url = (await searchParams).url;
-  let data;
-  if (url) {
-    const res = await fetch(`${process.env.API_URL}/carbon?url=${url}`, {
-      headers: {
-        Authorization: `Bearer ${process.env.API_TOKEN}`,
-      },
-    });
-    console.log(res);
-    data = await res.json();
-  }
+  const data: Carbon = (await carbonCapture(url as string)) as unknown as Carbon;
 
   return (
     <main className={styles.main}>
@@ -54,13 +40,13 @@ export default async function Report({
         {data.hosting && (
           <div className={styles.statCard}>
             <h2 className={styles.heading}>Hosting</h2>
-            <p className={styles.body}>
-              <span className={styles.stat}>{data.hosting.green ? 'Green' : 'Dirty'}</span>
+            <div className={styles.body}>
+              <p className={styles.stat}>{data.hosting.green ? 'Green' : 'Dirty'}</p>
               {data.hosting.green && data.hosting.supporting_documents && (
                 <details className={styles.hostInfo}>
                   <summary>{data.hosting.hosted_by}</summary>
                   <ul>
-                    {data.hosting.supporting_documents.map((doc: SupportingDocument) => (
+                    {data.hosting.supporting_documents.map((doc) => (
                       <li key={doc.id}>
                         <a href={doc.link}>{doc.title}</a>
                       </li>
@@ -68,7 +54,7 @@ export default async function Report({
                   </ul>
                 </details>
               )}
-            </p>
+            </div>
           </div>
         )}
       </div>
